@@ -1,5 +1,5 @@
 /**
- *               ~ CLNDR v1.4.5 ~
+ *               ~ CLNDR v1.4.2 ~
  * ==============================================
  *       https://github.com/kylestetz/CLNDR
  * ==============================================
@@ -18,21 +18,30 @@
  * Further changes, comments: @addyosmani
  * Licensed under the MIT license
  */
+ 
+/**
+ *               ~ Zepto verion ~
+ * 
+ * This is a fork of the CLNDR v1.4.2 branch for use with
+ * the minimalist JavaScript library, Zepto - http://zeptojs.com/
+ * 
+ */
+  
 (function (factory) {
     // Multiple loading methods are supported depending on
     // what is available globally. While moment is loaded
     // here, the instance can be passed in at config time.
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['jquery', 'moment'], factory);
+        define(['zepto', 'moment'], factory);
     }
     else if (typeof exports === 'object') {
         // Node/CommonJS
-        factory(require('jquery'), require('moment'));
+        factory(require('zepto'), require('moment'));
     }
     else {
         // Browser globals
-        factory(jQuery, moment);
+        factory(Zepto, moment);
     }
 }(function ($, moment) {
     // Namespace
@@ -225,11 +234,7 @@
         if (this.options.startWithMonth) {
             this.month = moment(this.options.startWithMonth).startOf('month');
             this.intervalStart = moment(this.month);
-            this.intervalEnd = (this.options.lengthOfTime.days)
-                ? moment(this.month)
-                    .add(this.options.lengthOfTime.days - 1, 'days')
-                    .endOf('day')
-                : moment(this.month).endOf('month');
+            this.intervalEnd = moment(this.month).endOf('month');
         }
 
         // If we've got constraints set, make sure the interval is within them.
@@ -821,8 +826,7 @@
     };
 
     Clndr.prototype.bindEvents = function () {
-        var data = {},
-            self = this,
+        var self = this,
             $container = $(this.element),
             targets = this.options.targets,
             classes = self.options.classes,
@@ -843,8 +847,8 @@
 
         // Target the day elements and give them click events
         $container.on(eventName, '.' + targets.day, function (event) {
-            var target,
-                $currentTarget = $(event.currentTarget);
+            var $currentTarget = $(event.currentTarget),
+                target;
 
             if (self.options.clickEvents.click) {
                 target = self.buildTargetObject(event.currentTarget, true);
@@ -873,18 +877,17 @@
                 // Remember new selected date
                 self.options.selectedDate =
                     self.getTargetDateString(event.currentTarget);
-                // Handle "selected" class. This handles more complex templates
-                // that may have the selected elements nested.
-                $container.find('.' + classes.selected)
-                    .removeClass(classes.selected);
-                $currentTarget.addClass(classes.selected);
+                // Handle "selected" class
+                $currentTarget
+                    .siblings().removeClass(classes.selected).end()
+                    .addClass(classes.selected);
             }
         });
 
         // Target the empty calendar boxes as well
         $container.on(eventName, '.' + targets.empty, function (event) {
-            var target,
-                $eventTarget = $(event.currentTarget);
+            var $eventTarget = $(event.currentTarget),
+                target;
 
             if (self.options.clickEvents.click) {
                 target = self.buildTargetObject(event.currentTarget, false);
@@ -1355,7 +1358,7 @@
                 .subtract(1, 'days')
                 .endOf('month');
         }
-        
+
         // No need to re-render if we didn't change months.
         if (!ctx.intervalStart.isSame(orig.start)
             || !ctx.intervalEnd.isSame(orig.end))
